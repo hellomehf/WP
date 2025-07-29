@@ -17,8 +17,10 @@ return new class extends Migration
             $table->string('email',191)->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password',191);
+            $table->string('address',191)->nullable();
             $table->string('verification_code')->nullable();
             $table->tinyInteger('is_admin')->default(1);
+            $table->string('role')->default('admin');
             $table->tinyInteger('status')->default(0);
             $table->tinyInteger('is_delete')->default(0);
             $table->rememberToken();
