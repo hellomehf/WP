@@ -2,8 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+
 // use Illuminate\Support\Facades\Hash; // Added for completeness if you ever use Hash::make()
 
 class UserController extends Controller
@@ -27,11 +31,6 @@ class UserController extends Controller
      */
     public function login(Request $request)
     {
-        // Validate the incoming request data
-        // $credentials = $request->validate([
-        //     'email' => ['required', 'email'],
-        //     'password' => ['required'],
-        // ]);
 
         $remember = !empty($request->remember) ? true : false;
 
@@ -43,14 +42,8 @@ class UserController extends Controller
             'is_delete' => 0, // Ensure this matches your database user
             'status' => 1 // Ensure this matches your database user
         ], $remember)) {
-            // Regenerate the session to prevent session fixation attacks
-            // $request->session()->regenerate();
 
-            // Flash a success message
-            // session()->flash('success', 'Login successful! Welcome back.');
-
-            // Redirect to the admin dashboard page after successful login, as requested
-            return redirect()->route('admin.dashboard'); 
+            return redirect()->route('admin.dashboard');
         } else {
             // If authentication fails, redirect back with a more specific error message
             // This error implies either incorrect credentials OR the user doesn't meet the 'is_admin', 'is_delete', 'status' criteria.
@@ -87,8 +80,64 @@ class UserController extends Controller
      *
      * @return \Illuminate\View\View
      */
+
+    public function store(Request $request)
+    {
+        // Validate the incoming request data
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:wb_final_users,email', // Ensure unique email
+            'password' => 'required|string|min:8|confirmed', // 'confirmed' checks for password_confirmation field
+            // 'is_admin' => 'boolean', // Assuming these are not directly from the adduser form
+            // 'role' => 'string|max:255',
+            // 'status' => 'boolean',
+            // 'is_delete' => 'boolean',
+        ]);
+
+        try {
+            // Create a new user
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => Hash::make($request->password), // Hash the password
+                'is_admin' => 0, // Default to regular user upon registration
+                'role' => 'user', // Default role
+                'status' => 1, // Default status (active)
+                'is_delete' => 0, // Default to not deleted
+                'email_verified_at' => now(), // Assuming email is verified on creation or will be later
+            ]);
+
+            // Redirect to the user listing with a success message
+            return redirect()->route('pages.user')->with('success', 'User created successfully.');
+
+        } catch (\Exception $e) {
+            return redirect()->back()->withInput()->with('error', 'Failed to create user. Please try again.');
+        }
+    }
+
     public function registerForm()
     {
         return view('auth.register');
+    }
+
+    public function create(){
+        return view('pages.adduser');
+    }
+
+    public function show()
+    {
+        return view('pages.user');
+    }
+
+    public function showPf() {
+        return view('pages.userpf');
+    }
+
+    public function edit(){
+        return view('pages.edituser');
+    }
+
+    public function adduser(){
+        return view('pages.adduser');
     }
 }
