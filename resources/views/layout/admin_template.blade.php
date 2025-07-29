@@ -125,9 +125,9 @@
                                                 </span>
                                                 <span class="flex flex-column">
                                                     {{-- user_name --}}
-                                                    <span class="body-title mb-2">Kristin Watson</span>
+                                                    <span class="body-title mb-2" style="font-size: 15px;">{{Auth::user()->name}}</span>
                                                     {{-- UserRole --}}
-                                                    <span class="text-tiny">Admin</span>
+                                                    <span class="text-tiny">{{Auth::user()->role}}</span>
                                                 </span>
                                             </span>
                                         </button>
@@ -142,12 +142,15 @@
                                                 </a>
                                             </li>
                                             <li>
-                                                <a href="{{route('login.form')}}" class="user-item">
+                                                <form method="post" action="{{route('logout')}} " id="logout-form">
+                                                    @csrf
+                                                <a href="{{route('login')}}" class="user-item" onclick="event.preventDefault();document.getElementById('logout-form').submit();">
                                                     <div class="icon">
                                                         <i class="icon-log-out"></i>
                                                     </div>
                                                     <div class="body-title-2">Log out</div>
                                                 </a>
+                                                </form>
                                             </li>
                                         </ul>
                                     </div>
