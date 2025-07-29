@@ -9,8 +9,8 @@
                 <div class="profile-info">
                     <img src="{{asset('images\avatar\user-1.png')}}" alt="Profile Picture" class="profile-pic">
                     <div class="profile-details">
-                        <h2>Alexa Rawles</h2>
-                        <p>alexarawles@gmail.com</p>
+                        <h2>{{Auth::user()->name}}</h2>
+                        <p>{{Auth::user()->email}}</p>
                     </div>
                 </div>
               <ul class="breadcrumbs flex items-center flex-wrap justify-start gap10">
@@ -31,29 +31,25 @@
               <div class="flex items-center justify-between gap10 flex-wrap">
                   <div class="wg-filter flex-grow">
                   </div>
-                  <a class="tf-button style-1 w208" href="{{route('pages.addcategory')}}"><i
+                  <a class="tf-button style-1 w208" href="{{route('pages.edituser')}}"><i
                           class="icon-plus"></i>Edit Profile</a>
               </div>
               <div class="form-grid">
                   <div class="form-group">
-                      <label for="fullName">First Name</label>
-                      <input type="text" id="first_name" placeholder="Your First Name" value="Alexa">
-                  </div>
-                  <div class="form-group">
-                      <label for="nickName">Last Name</label>
-                      <input type="text" id="last_name" placeholder="Your Last Name" value="Lexi">
+                      <label for="fullName">Full Name</label>
+                      <input type="text" id="first_name" placeholder="Your First Name" value="{{Auth::user()->name}}">
                   </div>
                   <div class="form-group">
                       <label for="gender">Email</label>
-                      <input type="text" id="email" placeholder="Email" value="AlexaLexi@admin.com">
+                      <input type="text" id="email" placeholder="Email" value="{{Auth::user()->email}}">
                   </div>
                   <div class="form-group">
                       <label for="country">Password</label>
-                      <input type="password" id="nickName" placeholder="Country" value="Cambodia">
+                      <input type="password" id="nickName" placeholder="Country" value="{{Auth::user()->password}}">
                   </div>
                   <div class="form-group">
                       <label for="language">Address</label>
-                      <input type="text" id="nickName" placeholder="Language" value="Camdodiast2483">
+                      <input type="text" id="nickName" placeholder="address" value="{{Auth::user()->address}}">
                   </div>
               </div>
 
