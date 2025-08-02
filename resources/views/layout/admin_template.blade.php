@@ -160,9 +160,9 @@
                     </div>
                     <div class="main-content">
                         @yield('content')
-                        <div class="bottom-page">
-                            <div class="body-text">Copyright © 2024 SurfsideMedia</div>
-                        </div>
+                    </div>
+                    <div class="bottom-page">
+                        <div class="body-text">Copyright © 2024 SurfsideMedia</div>
                     </div>
                 </div>
             </div>
@@ -274,7 +274,7 @@
             jQuery(window).on("resize", function() {});
         })(jQuery);
     </script>
-    @yield('scriptBlock')
+    @stack('scriptBlock')
 </body>
 
 </html>
