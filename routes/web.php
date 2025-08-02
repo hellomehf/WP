@@ -5,6 +5,8 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\UserController;
+use App\Models\Product;
+use Illuminate\Support\Facades\DB;
 
 // Authentication Routes
 Route::get('/', [UserController::class, 'LoginForm'])->name('login.form');
@@ -20,28 +22,32 @@ Route::middleware(['auth'])->group(function () {
     // Admin Dashboard
 
     Route::get('/' , function(){
-        return view('admin.dashboard');
+        $products = Product::orderBy('created_at','DESC')->paginate(10);
+        $dashProduct = DB::select("Select count(*) as totalproduct from products");
+        $dashCategory = DB::select("Select count(*) as totalcategory from categories");
+        $dashUser = DB::select("select count(*) as totaluser from users ");
+        return view('admin.dashboard' ,compact('products','dashProduct','dashCategory','dashUser'));
     })->name('admin.dashboard');
     
     // Products
-    Route::resource('products', ProductController::class);
-    Route::get('/showProduct' , [ProductController::class, 'show'])->name('pages.product');
-    Route::get('/editProduct' , [ProductController::class, 'edit'])->name('edit.product');
-    Route::get('/addProduct' , [ProductController::class, 'create'])->name('add.product');
-
+    Route::get('/admin/product' , [ProductController::class, 'products'])->name('pages.product');
+    Route::get('/admin/product/add' , [ProductController::class, 'product_add'])->name('add.product');
+    Route::post('/admin/product/store' , [ProductController::class, 'product_store'])->name('admin.product.store');
+    Route::get('/admin/product/{id}/edit' , [ProductController::class , 'product_edit'])->name('admin.edit.product');
+    Route::put('/admin/product/update', [ProductController::class , 'product_update'])->name('update.product');
+    Route::delete('/admin/product/{id}/delete' , [ProductController::class , 'product_delete'])->name('delete.product');
+    
     // Categories
-    Route::resource('categories', CategoryController::class);
-    Route::get('/showCategory' , [CategoryController::class, 'show'])->name('pages.category');
-    Route::get('/editCategory' , [CategoryController::class, 'edit'])->name('edit.category');
+    Route::get('/showCategory' , [CategoryController::class, 'categorires'])->name('pages.category');
+    Route::get('/editCategory/{id}' , [CategoryController::class, 'edit'])->name('edit.category');
+    Route::put('/updateCategory' , [CategoryController::class, 'update'])->name('udpate.category');
     Route::get('/addCategory' , [CategoryController::class, 'create'])->name('pages.addcategory');
+    Route::delete('/deleteCategory/{id}/delete', [CategoryController::class , 'destroy'])->name('pages.delete');
+    Route::post('/storeCategory' , [CategoryController::class, 'store'])->name('store.category');
 
     // Users
-    Route::resource('users', UserController::class)->except(['create', 'store']);
-    Route::get('/showUser' , [UserController::class, 'show'])->name('pages.user');
+    Route::get('/showUser' , [UserController::class, 'user'])->name('pages.user');
     Route::get('/showUserPf' , [UserController::class, 'showPf'])->name('pages.userpf');
-    Route::get('/addUser' , [UserController::class , 'create'])->name('add.user');
-    Route::get('/editUser' , [UserController::class , 'edit'])->name('pages.edituser');
-
     
 });
 
