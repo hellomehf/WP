@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 
 // use Illuminate\Support\Facades\Hash; // Added for completeness if you ever use Hash::make()
 
@@ -42,7 +43,6 @@ class UserController extends Controller
             'is_delete' => 0, // Ensure this matches your database user
             'status' => 1 // Ensure this matches your database user
         ], $remember)) {
-
             return redirect()->route('admin.dashboard');
         } else {
             // If authentication fails, redirect back with a more specific error message
@@ -80,50 +80,12 @@ class UserController extends Controller
      *
      * @return \Illuminate\View\View
      */
-
-    public function store(Request $request)
+    public function user()
     {
-        // Validate the incoming request data
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:wb_final_users,email', // Ensure unique email
-            'password' => 'required|string|min:8|confirmed', // 'confirmed' checks for password_confirmation field
-            // 'is_admin' => 'boolean', // Assuming these are not directly from the adduser form
-            // 'role' => 'string|max:255',
-            // 'status' => 'boolean',
-            // 'is_delete' => 'boolean',
-        ]);
-
-        try {
-            // Create a new user
-            $user = User::create([
-                'name' => $request->name,
-                'email' => $request->email,
-                'password' => Hash::make($request->password), // Hash the password
-                'is_admin' => 0, // Default to regular user upon registration
-                'role' => 'user', // Default role
-                'status' => 1, // Default status (active)
-                'is_delete' => 0, // Default to not deleted
-                'email_verified_at' => now(), // Assuming email is verified on creation or will be later
-            ]);
-
-            // Redirect to the user listing with a success message
-            return redirect()->route('pages.user')->with('success', 'User created successfully.');
-
-        } catch (\Exception $e) {
-            return redirect()->back()->withInput()->with('error', 'Failed to create user. Please try again.');
-        }
+        $users = User::orderBy('id','ASC')->paginate(10);
+        return view('pages.user',compact('users'));
     }
-
-    public function registerForm()
-    {
-        return view('auth.register');
-    }
-
-    public function create(){
-        return view('pages.adduser');
-    }
-
+    
     public function show()
     {
         return view('pages.user');
@@ -133,11 +95,5 @@ class UserController extends Controller
         return view('pages.userpf');
     }
 
-    public function edit(){
-        return view('pages.edituser');
-    }
 
-    public function adduser(){
-        return view('pages.adduser');
-    }
 }
