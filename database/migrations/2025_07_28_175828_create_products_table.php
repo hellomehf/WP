@@ -10,15 +10,19 @@ return new class extends Migration
         Schema::create('products', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->string('slug')->unique();
             $table->text('description');
-            $table->decimal('price', 10, 2);
-            $table->decimal('sale_price', 10, 2)->nullable();
-            $table->foreignId('category_id')->constrained('categories');
-            $table->date('expire_date');
+            $table->decimal('regular_price');
+            $table->decimal('sale_price')->nullable();
+            $table->unsignedInteger('expire_month')->default(10);
+            $table->enum('stock_status',['instock','outofstock']);
             $table->boolean('featured')->default(false);
-            $table->string('stock_status');
-            $table->integer('quantity');
+            $table->unsignedInteger('quantity')->default(10);
+            $table->string('image')->nullable();
+            $table->bigInteger('category_id')->unsigned()->nullable();
+            $table->bigInteger('brand_id')->unsigned()->nullable();
             $table->timestamps();
+            $table->foreign('category_id')->references('id')->on('categories')->onDelete('cascade');
         });
     }
 
