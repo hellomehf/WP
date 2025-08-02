@@ -4,7 +4,7 @@
 @section('styleBlock')
 @endsection
 @section('content')
-  <div class="main-content-inner">
+<div class="main-content-inner">
     <div class="main-content-wrap">
         <div class="flex items-center flex-wrap justify-between gap20 mb-27">
             <h3>All Products</h3>
@@ -36,17 +36,21 @@
                         </div>
                     </form>
                 </div>
-                <a class="tf-button style-1 w208" href="{{route('add.product')}}"><i class="icon-plus"></i>Add new</a>
+                <a class="tf-button style-1 w208" href="{{route('add.product')}}"><i  
+                        class="icon-plus"></i>Add new</a>
             </div>
             <div class="table-responsive">
+                @if(Session::has('status'))
+                    <p class="alter alter-success">{{Session::get('status')}}</p>
+                @endif
                 <table class="table table-striped table-bordered">
                     <thead>
                         <tr>
                             <th>#</th>
                             <th>Name</th>
                             <th>Price</th>
-                            <th>SalePrice</th>  
-                            <th>Expire Date</th>
+                            <th>SalePrice</th>
+                            <th>Expire Month</th>
                             <th>Category</th>
                             <th>Featured</th>
                             <th>Stock</th>
@@ -55,33 +59,35 @@
                         </tr>
                     </thead>
                     <tbody>
+                        @foreach ($products as $product)
                         <tr>
-                            <td>6</td>
+                            <td>{{$product->id}}</td>
                             <td class="pname">
                                 <div class="image">
-                                    {{-- product Picture --}}
-                                    <img src="{{asset('assets/images/cart-item-1.jpg')}}" alt="" class="image">
+                                    <img src="{{asset('uploads/products')}}/{{$product->image}}" alt="{{$product->name}}" class="image">
                                 </div>
                                 <div class="name">
-                                    <a href="#" class="body-title-2">Product6</a>
-                                    <div class="text-tiny mt-3">product6</div>
-                                </div>
+                                    <a href="#" class="body-title-2">{{$product->name}}</a>
+                                    <div class="text-tiny mt-3">{{$product->slug}}</div>
+                                </div>  
                             </td>
-                            <td>$128.00</td>
-                            <td>$110.00</td>
-                            <td>29/02/2026</td>
-                            <td>Category3</td>
-                            <td>Yes</td>
-                            <td>instock</td>
-                            <td>11</td>
+                            <td>${{$product->regular_price}}</td>
+                            <td>${{$product->sale_price}}</td>
+                            <td>{{$product->expire_month}}</td>
+                            <td>{{$product->category->name}}</td>
+                            <td>{{$product->feature == 0 ? "No":"Yes"}}</td>
+                            <td>{{$product->stock_status}}</td>
+                            <td>{{$product->quantity}}</td>
                             <td>
                                 <div class="list-icon-function">
-                                    <a href="{{route('edit.product')}}">
+                                    <a href="{{route('admin.edit.product',['id'=>$product->id])}}">
                                         <div class="item edit">
                                             <i class="icon-edit-3"></i>
                                         </div>
                                     </a>
-                                    <form action="#" method="POST">
+                                    <form action="{{route('delete.product',['id'=>$product->id])}}" method="POST">
+                                        @csrf
+                                        @method('DELETE')
                                         <div class="item text-danger delete">
                                             <i class="icon-trash-2"></i>
                                         </div>
@@ -89,15 +95,37 @@
                                 </div>
                             </td>
                         </tr>
+                        @endforeach
                     </tbody>
                 </table>
             </div>
 
             <div class="divider"></div>
             <div class="flex items-center justify-between flex-wrap gap10 wgp-pagination">
-
+              {{$products->links('pagination::bootstrap-5')}}
             </div>
         </div>
     </div>
-  </div>
+</div>
 @endsection
+@push('scriptBlock')
+    <script>
+        $(function(){
+            $('.delete').on('click',function(e){
+                e.preventDefault();
+                var form = $(this).closest('form');
+                swal({
+                    title:"Are you sure?",
+                    text:"Once deleted, you will not be able to recover this data",
+                    type:"warning",
+                    buttons:["No","Yes"],
+                    confirmButtonColor:'#dc3545'
+                }).then(function(result){
+                    if(result){
+                        form.submit();
+                    }
+                })
+            });
+        });
+    </script>
+@endpush
