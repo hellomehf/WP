@@ -35,51 +35,79 @@
                           class="icon-plus"></i>Add new</a>
               </div>
               <div class="wg-table table-all-user ">
+                <div class="table-responsive">
+                    @if(Session::has('status'))
+                        <p class="alert alert-success">{{Session::get('status')}}</p>
+                    @endif
                   <table class="table table-striped table-bordered ">
                       <thead>
                           <tr>
-                              <th>#ID</th>
-                              <th>Name</th>
-                              <th>Products</th>
-                              <th>Create At</th>
+                              <th>#</th>
+                              <th>Category Name</th>
+                              <th>Category Slug</th>
                               <th>Action</th>
                           </tr>
                       </thead>
                       <tbody>
-                          <tr>
-                              <td>4</td>
+                            @foreach ($categories as $category)
+                            <tr>
+                              <td>{{$category->id}}</td>
                               <td class="pname">
                                   <div class="image">
-                                      <img src="{{asset('images/avatar/user-1.png')}}" alt="" class="image">
+                                      <img src="{{asset('uploads/category')}}/{{$category->image}}" alt="{{$category->name}}" class="image">
                                   </div>
                                   <div class="name">
-                                      <a href="#" class="body-title-2">Category4</a>
+                                      <a href="#" class="body-title-2">{{$category->name}}</a>
                                   </div>
                               </td>
-                              <td>2</a></td>
-                              <td>29/26/2026</td>
+                              <td>{{$category->slug}}</a></td>
                               <td class="ml-8" >
                                   <div class="list-icon-function" >
-                                      <a href="{{route('edit.category')}}">
+                                      <a href="{{route('edit.category' , ['id'=>$category->id])}}">
                                           <div class="item edit mt-4 mb-4">
                                               <i class="icon-edit-3"></i>
                                           </div>
                                       </a>
-                                      <form action="#" method="POST">
-                                          <div class="item text-danger delete">
-                                              <i class="icon-trash-2"></i>
-                                          </div>
+                                      <form action="{{route('pages.delete' , ['id'=>$category->id])}}" method="POST">
+                                        @csrf
+                                        @method('DELETE')
+                                        <div class="item text-danger delete">
+                                            <i class="icon-trash-2"></i>
+                                        </div>
                                       </form>
                                   </div>
                               </td>
-                          </tr>
+                            </tr>
+                            @endforeach
                       </tbody>
                   </table>
               </div>
               <div class="divider"></div>
               <div class="flex items-center justify-between flex-wrap gap10 wgp-pagination">
+                {{ $categories->links('pagination::bootstrap-5') }}
               </div>
           </div>
       </div>
   </div>
 @endsection
+@push('scriptBlock')
+    <script>
+        $(function(){
+            $('.delete').on('click',function(e){
+                e.preventDefault();
+                var form = $(this).closest('form');
+                swal({
+                    title:"Are you sure?",
+                    text:"Once deleted, you will not be able to recover this data",
+                    type:"warning",
+                    buttons:["No","Yes"],
+                    confirmButtonColor:'#dc3545'
+                }).then(function(result){
+                    if(result){
+                        form.submit();
+                    }
+                })
+            });
+        });
+    </script>
+@endpush
