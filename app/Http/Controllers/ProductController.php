@@ -4,104 +4,136 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use App\Models\Category;
+use Carbon\Carbon;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\File;
+use Intervention\Image\Laravel\Facades\Image;
+
+
 
 class ProductController extends Controller
 {
-    public function index()
+
+    public function products()
     {
-        $products = Product::with('category')->latest()->get();
-        return view('pages.product', compact('products'));
+        $products = Product::orderBy('created_at','DESC')->paginate(10);
+        return view('pages.product',compact('products',));
     }
 
-    public function create()
+    public function product_add()
     {
-        $categories = Category::all();
+        $categories = Category::select('id','name')->orderBy('name')->get();
         return view('pages.addproduct', compact('categories'));
     }
 
-    public function store(Request $request)
+    public function product_store(Request $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:150',
-            'category_id' => 'required|exists:categories,id',
-            'description' => 'required|string',
-            'regular_price' => 'required|numeric',
-            'sale_price' => 'nullable|numeric',
-            'expire_date' => 'nullable|date',
-            'stock' => 'required|string',
-            'quantity' => 'required|integer',
-            'featured' => 'boolean',
-            'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
+        $request->validate([
+            'name'=> 'required',
+            'slug'=> 'required|unique:products,slug',
+            'description'=> 'required',
+            'regular_price'=> 'required',
+            'sale_price'=> 'required',
+            'expire_month'=> 'required',
+            'stock_status'=> 'required',
+            'featured'=> 'required',
+            'quantity'=> 'required',
+            'image'=> 'required|mimes:png,jpg,jpeg|max:2048',
+            'category_id'=> 'required'
         ]);
 
-        $product = Product::create($validated);
-
-        if ($request->hasFile('images')) {
-            foreach ($request->file('images') as $image) {
-                $path = $image->store('products', 'public');
-                $product->images()->create(['path' => $path]);
-            }
-        }
-
-        return redirect()->route('pages.product')->with('success', 'Product added successfully!');
+        $product = new Product();
+        $product->name = $request->name;
+        $product->slug = Str::slug($request->name);
+        $product->description = $request->description;
+        $product->regular_price = $request->regular_price;
+        $product->sale_price = $request->sale_price;
+        $product->expire_month = $request->expire_month;
+        $product->stock_status = $request->stock_status;
+        $product->featured = $request->featured;
+        $product->quantity = $request->quantity;
+        $image=$request->file('image');
+        $file_extension = $request->file('image')->extension();
+        $file_name = Carbon::now()->timestamp.'.'.$file_extension;
+        $this->GenerateProductThumbnailImage($image,$file_name);
+        $product->image=$file_name;
+        $product->category_id = $request->category_id;
+        
+        $product->save();
+        return redirect()->route('pages.product')->with('status', 'Product added successfully!');
     }
 
-    public function show(Product $product)
+    public function GenerateProductThumbnailImage($image , $imageName)
     {
-        return view('pages.product', compact('product'));
-    }
+        $destinationPath = public_path('uploads/products');
+        $img = Image::read($image->path());
+        $img->cover(540,689,"top");
+        $img->resize(540,689,function($constraint){
+            $constraint->aspectRation();
+        })->save($destinationPath.'/'.$imageName);
+    } 
 
-    public function edit(Product $product)
+    public function product_edit($id)
     {
-        $categories = Category::all();
+        $product = Product::find($id);
+        $categories = Category::select('id','name')->orderBy('name')->get();    
         return view('pages.editproduct', compact('product', 'categories'));
     }
 
-    public function update(Request $request, Product $product)
+    public function product_update(Request $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:150',
-            'category_id' => 'required|exists:categories,id',
-            'description' => 'required|string',
-            'regular_price' => 'required|numeric',
-            'sale_price' => 'nullable|numeric',
-            'expire_date' => 'nullable|date',
-            'stock' => 'required|string',
-            'quantity' => 'required|integer',
-            'featured' => 'boolean',
-            'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
+        $request->validate([
+            'name'=> 'required',
+            'slug'=> 'required|unique:products,slug,'.$request->id,
+            'description'=> 'required',
+            'regular_price'=> 'required',
+            'sale_price'=> 'required',
+            'expire_month'=> 'required',
+            'stock_status'=> 'required',
+            'featured'=> 'required',
+            'quantity'=> 'required',
+            'image'=> 'mimes:png,jpg,jpeg|max:2048',
+            'category_id'=> 'required'
         ]);
 
-        $product->update($validated);
-
-        if ($request->hasFile('images')) {
-            // Delete old images if needed
-            foreach ($product->images as $image) {
-                Storage::disk('public')->delete($image->path);
-                $image->delete();
+        $product = Product::find($request->id);
+        $product->name = $request->name;
+        $product->slug = Str::slug($request->name);
+        $product->description = $request->description;
+        $product->regular_price = $request->regular_price;
+        $product->sale_price = $request->sale_price;
+        $product->expire_month = $request->expire_month;
+        $product->stock_status = $request->stock_status;
+        $product->featured = $request->featured;
+        $product->quantity = $request->quantity;
+        if($request->hasFile('image')){
+            if(File::exists(public_path('uploads/products').'/'.$product->image))
+            {
+                File::delete(public_path('uploads/products').'/'.$product->image);
             }
-
-            // Add new images
-            foreach ($request->file('images') as $image) {
-                $path = $image->store('products', 'public');
-                $product->images()->create(['path' => $path]);
-            }
+            $image=$request->file('image');
+            $file_extension = $request->file('image')->extension();
+            $file_name = Carbon::now()->timestamp.'.'.$file_extension;
+            $this->GenerateProductThumbnailImage($image,$file_name);
+            $product->image=$file_name;
         }
-
-        return redirect()->route('pages.product')->with('success', 'Product updated successfully!');
+        
+        $product->category_id = $request->category_id;
+        
+        $product->save();
+        return redirect()->route('pages.product')->with('status', 'Product updated successfully!');
     }
 
-    public function destroy(Product $product)
+    public function product_delete($id)
     {
-        foreach ($product->images as $image) {
-            Storage::disk('public')->delete($image->path);
-            $image->delete();
+        $product = Product::find($id);
+        if (File::exists(public_path('uploads/products').'/'.$product->image))
+        {
+            File::delete(public_path('uploads/products').'/'.$product->image);
         }
-
         $product->delete();
-        return redirect()->route('pages.product')->with('success', 'Product deleted successfully!');
+        return redirect()->route('pages.product')->with('status', 'Product deleted successfully!');
     }
 }
