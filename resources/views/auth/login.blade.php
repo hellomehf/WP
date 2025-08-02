@@ -67,14 +67,15 @@
                   </span>
                 @enderror
               </div>
+              
 
               <button class="btn btn-primary w-100 text-uppercase" type="submit">Log In</button>
 
-              <div class="customer-option mt-4 text-center">
-              </div>
-
             </form>
-
+            <div class="customer-option mt-4 text-center">
+                <span class="text-secondary">No account yet?</span>
+                <a href="{{route('register')}}" class="btn-text js-show-register">Create Account</a>
+            </div>
           </div>
         </div>
       </div>
