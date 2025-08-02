@@ -31,8 +31,6 @@
               <div class="flex items-center justify-between gap10 flex-wrap">
                   <div class="wg-filter flex-grow">
                   </div>
-                  <a class="tf-button style-1 w208" href="{{route('pages.edituser')}}"><i
-                          class="icon-plus"></i>Edit Profile</a>
               </div>
               <div class="form-grid">
                   <div class="form-group">
