@@ -33,21 +33,33 @@
         </div>
         <!-- new-category -->
         <div class="wg-box">
-          <form class="form-new-product form-style-1" action="#" method="POST" enctype="multipart/form-data">
+          <form class="form-new-product form-style-1" action="{{route('udpate.category')}}" method="POST" enctype="multipart/form-data">
+            @csrf
+            @method('PUT')
+            <input type="hidden" name="id" value={{$category->id}} />
             <fieldset class="name">
               <div class="body-title">Category Name <span class="tf-color-1">*</span></div>
-              <input class="flex-grow" type="text" placeholder="Category name" name="name" tabindex="0" value="" aria-required="true" required="">
+              <input class="flex-grow" type="text" placeholder="Category name" name="name" 
+                  tabindex="0" value="{{$category->name}}" aria-required="true" required="">
             </fieldset>
+            @error('name')
+                <span class="alert alert-danger text-center">{{$message}}</span>
+            @enderror
             <fieldset class="name">
               <div class="body-title">Category Slug <span class="tf-color-1">*</span></div>
-              <input class="flex-grow" type="text" placeholder="Category Slug" name="slug" tabindex="0" value="" aria-required="true" required="">
+              <input class="flex-grow" type="text" placeholder="Category Slug" name="slug" tabindex="0" value="{{$category->slug}}" aria-required="true" required="">
             </fieldset>
+            @error('slug')
+                <span class="alert alert-danger text-center">{{$message}}</span>
+            @enderror
             <fieldset>
               <div class="body-title">Upload images <span class="tf-color-1">*</span></div>
               <div class="upload-image flex-grow">
-                <div class="item" id="imgpreview" style="display:none">
-                  <img src="upload-1.html" class="effect8" alt="">
+                @if ($category->image)
+                <div class="item" id="imgpreview">
+                  <img src="{{asset('uploads/category')}}/{{$category->image}}" class="effect8" alt="">
                 </div>
+                @endif
                 <div id="upload-file" class="item up-load">
                   <label class="uploadfile" for="myFile">
                     <span class="icon">
@@ -59,12 +71,43 @@
                 </div>
               </div>
             </fieldset>
+            @error('image')
+                <span class="alert alert-danger text-center">{{$message}}</span>
+            @enderror
             <div class="bot">
-              <div></div>
-              <button class="tf-button w208" type="submit">Save</button>
+                <div></div>
+                <button class="tf-button w208" type="submit">Save</button>
             </div>
           </form>
         </div>
       </div>
     </div>
 @endsection
+
+@push('scriptBlock')
+    <script>
+        $(function(){
+            $("#myFile").on("change" , function(e){
+                const photoInp = $("#myFile");
+                const [file] = this.files;
+                if(file)
+                {
+                    $("#imgpreview img").attr('src' , URL.createObjectURL(file));
+                    $("#imgpreview").show();
+
+                }
+            });
+
+            $("input[name='name']").on("change",function(){
+                $("input[name='slug']").val(StringToSlug($(this).val()));
+            });
+        });
+
+        function StringToSlug(Text)
+        {
+            return Text.toLowerCase()
+            .replace(/[^\w]+/g,"")
+            .replace(/ +/g,"-");
+        }
+    </script>
+@endpush
